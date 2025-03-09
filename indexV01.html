@@ -67,10 +67,12 @@
         }
 
         async function generateInterviewQuestions(resumeText) {
-            const prompt = `Analyze this resume and generate interview questions categorized as:
+            const prompt = `Analyze this resume and generate only a list of interview questions categorized as:
             - Technical
             - Behavioral
             - Situational
+            Do not include any explanations or extra text. 
+
             Resume Content:
             ${resumeText}`;
 
@@ -90,7 +92,12 @@
                 }
 
                 const result = await response.json();
-                return result.candidates?.[0]?.content?.parts?.[0]?.text || "Failed to generate questions.";
+                let questions = result.candidates?.[0]?.content?.parts?.[0]?.text || "No questions generated.";
+
+                // Remove any AI-generated footer content if present
+                questions = questions.replace(/(This response was generated.*)/gi, "").trim();
+
+                return questions;
             } catch (error) {
                 console.error("Error calling Gemini API:", error);
                 return "Error generating questions. Check console for details.";
